@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  plague: MyString
+  severity: 1
+
+two:
+  plague: MyString
+  severity: 1

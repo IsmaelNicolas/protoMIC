@@ -1,0 +1,9 @@
+<div class="md:w-1/2 flex flex-col justify-center items-start m-10">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Editing detection</h1>
+  <%= render "form", detection: @detection %>
+  <br>
+  <div>
+    <%= link_to "Show this detection", @detection %> |
+    <%= link_to "Back to detections", detections_path %>
+  </div>
+</div>

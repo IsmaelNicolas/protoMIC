@@ -3,7 +3,41 @@ class DetectionsController < ApplicationController
 
   # GET /detections or /detections.json
   def index
-    @detections = Detection.all
+    plague = params[:plague]
+    if plague.present?
+      @detections = Detection.where(plague:).order(created_at: :desc)
+      detections = Detection.where(plague:).group(:severity).count
+      severities = Detection.severities.keys
+      @detections_by_number = severities.each_with_object({}) do |severity, hash|
+        hash[severity] = detections[severity] || 0
+      end
+      @selected_plague = plague
+
+      detections_by_week = Detection
+                           .where(plague: params[:plague]) # Selección del plague si se pasa como parámetro
+                           .select('EXTRACT(WEEK FROM created_at) AS week, EXTRACT(YEAR FROM created_at) AS year, severity, COUNT(*) AS detections_count')
+                           .group('year, week, severity')
+                           .order('year ASC, week ASC')
+
+      # Dividir los datos según la severidad
+      @detections_by_severity = {
+        'low' => detections_by_week.select do |d|
+                   d.severity == 'low'
+                 end.map { |d| ["Semana #{d.week.to_i}, #{d.year.to_i}", d.detections_count] }.to_h,
+        'medium' => detections_by_week.select do |d|
+                      d.severity == 'medium'
+                    end.map { |d| ["Semana #{d.week.to_i}, #{d.year.to_i}", d.detections_count] }.to_h,
+        'high' => detections_by_week.select do |d|
+                    d.severity == 'high'
+                  end.map { |d| ["Semana #{d.week.to_i}, #{d.year.to_i}", d.detections_count] }.to_h
+      }
+
+    else
+      @detections_by_severity = {}
+      @selected_plague = nil
+      @detections_by_number = {}
+      @detections = Detection.all.order(created_at: :desc)
+    end
   end
 
   # GET /detections/1 or /detections/1.json
@@ -20,6 +54,8 @@ class DetectionsController < ApplicationController
   # POST /detections or /detections.json
   def create
     @detection = Detection.new(detection_params)
+    @detection.plague = :black_spot # O el valor que desees
+    @detection.severity = :high # O el valor que desees
 
     respond_to do |format|
       if @detection.save

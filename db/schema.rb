@@ -43,7 +43,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_24_203354) do
   end
 
   create_table "detections", force: :cascade do |t|
-    t.string "plague"
+    t.integer "plague"
     t.integer "severity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

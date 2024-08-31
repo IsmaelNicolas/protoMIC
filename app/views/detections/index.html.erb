@@ -1,5 +1,60 @@
 <p class="text-green-600 font-medium mb-4"><%= notice %></p>
-<h1 class="text-3xl font-bold text-gray-900 mb-6">Detecciones semana <%= Date.today.strftime('%y') %><%=Date.today.cweek%></h1>
+<h2 class="text-2xl font-semibold text-gray-900 mb-6">Resumen</h2>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Semana <%= Date.today.strftime('%y') %><%=Date.today.cweek%></h1>
+<div>
+  <%= form_with(url: detections_path, method: :get, local: true,id:"bt-id" ,class: "mb-4",data:{controller:"form","form-target":"formt"}) do |form| %>
+    <div class="field">
+      <%= form.label :plague, "Blanco biológico", class: "block text-sm font-semibold text-black-700" %>
+      <%= form.select :plague ,
+      Detection.plagues.keys.map { |w| [w.titleize, w] }, 
+      { prompt: "Selecciona un blanco biológico" }, selected: Detection.plagues.keys.first,
+      class: "mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", data:{action:"change->form#update","form-target":"select"} %>
+    </div>
+    <%= form.submit "Filtrar", class: "hidden mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700",data:{"form-target":"button"} %>
+  <% end %>
+</div>
+<div class="flex md:flex-row flex-col justify-center items-end gap-4 w-full ">
+  <div class="md:w-1/2 justify-items-end">
+    <% if @selected_plague.present? %>
+      Número de Detecciones actuales para <strong> <%= @selected_plague.titleize %> </strong>
+    <% end %>
+    <% if @detections_by_number.any? %>
+      <%= column_chart @detections_by_number, 
+        xtitle: "Severidad", 
+        ytitle: "Número de Detecciones", 
+        stacked: true, 
+        colors: ["#2ca02c", "#ff7f0e", "#d62728"],  # Verde, Amarillo, Rojo
+        legend: { position: 'bottom' },
+        dataset: { label: "Número de Detecciones" } %>
+    <% else %>
+      <p class="text-red-600 font-medium">No hay número de detecciones para el blanco biológico seleccionado</p>
+    <% end %>
+  </div>
+  <%# otro grafico %>
+  <div class="md:w-1/2">
+    <% if @selected_plague.present? %>
+      Número de Detecciones por semanas para <strong> <%= @selected_plague.titleize %> </strong>
+    <% end %>
+    <% if @detections_by_severity.any? %>
+      <%= line_chart [
+          { name: "Low", data: @detections_by_severity["low"], color: "#2ca02c" },
+          { name: "Medium", data: @detections_by_severity["medium"], color: "#ff7f0e" },
+          { name: "High", data: @detections_by_severity["high"], color: "#d62728" }
+        ], 
+        xtitle: "Semana", 
+        ytitle: "Número de Detecciones", 
+        dataset: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      %>
+    <% else %>
+      <p class="text-red-600 font-medium">No hay número de detecciones para el blanco biológico seleccionado</p>
+    <% end %>
+  </div>
+</div>
+<h2 class="text-2xl font-semibold text-gray-900 mb-6">Detecciones </h2>
 <div class="my-6">
   <%= link_to "Nueva detección", new_detection_path, class: "inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
 </div>
